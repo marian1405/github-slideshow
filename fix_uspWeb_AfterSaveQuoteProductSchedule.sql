@@ -64,12 +64,12 @@ BEGIN
             @rv_AddMonths int = 0, @rv_Rows int = 0, @rv_Cterm int, @rv_TermUDF int,
 			-- FIX interest reset (vezi mai jos)
             @rv_IsFixed bit = 0, @rv_SchInterestCnt int = 0, @rv_SchInterest decimal(18, 6),
-            @rv_HasRV bit = 0 --QCxxxx
+            @rv_HasRV bit = 0 --QC60991
 
     select @rv_IsRVPO = 1,
            @rv_Per = isnull(wqp.Periodicity, 1),
            @rv_PS  = case when lower(st.ScheduleTypeName) like N'%advance%' then 1 else 0 end,
-           @rv_HasRV = case when isnull(wqp.ResidualValueAmount, 0) <> 0 then 1 else 0 end --QCxxxx
+           @rv_HasRV = case when isnull(wqp.ResidualValueAmount, 0) <> 0 then 1 else 0 end --QC60991
     from WebQuoteProduct wqp (nolock)
     join ScheduleType st (nolock) on st.ScheduleTypeId = wqp.ScheduleTypeId
     join LeasingFinancialProductProperty lfpp (nolock)
@@ -95,7 +95,7 @@ BEGIN
         if @rv_Rows > 0
         begin
             set @rv_Cterm   = @rv_Rows * @rv_Per - @rv_AddMonths
-            --QCxxxx: (NIA+PS) se scade in AfterSaveQuoteProduct doar cu RV<>0, deci se aduna inapoi doar cu RV<>0
+            --QC60991: (NIA+PS) se scade in AfterSaveQuoteProduct doar cu RV<>0, deci se aduna inapoi doar cu RV<>0
             set @rv_TermUDF = @rv_Cterm + case when @rv_HasRV = 1 then (@rv_NIA + @rv_PS) * @rv_Per else 0 end
 
             update WebQuoteProduct
